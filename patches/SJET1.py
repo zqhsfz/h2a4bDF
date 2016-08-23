@@ -266,9 +266,6 @@ for JetCollectionName in JetCollections + JetCollectionExKtSubJetList:
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtx"] = "xAOD::BTagVertexContainer"
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtxAux"] = "xAOD::BTagVertexAuxContainer"
 
-  SJET1SlimmingHelper.AppendToDictionary[JetCollectionName[:-4]+"ExKt2SubJets"] = "xAOD::JetContainer"
-  SJET1SlimmingHelper.AppendToDictionary[JetCollectionName[:-4]+"ExKt2SubJetsAux"] = "xAOD::JetAuxContainer"
-
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2Sub"] = "xAOD::BTaggingContainer"
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubAux"] = "xAOD::BTaggingAuxContainer"
 
