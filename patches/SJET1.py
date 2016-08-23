@@ -250,8 +250,10 @@ DerivationFrameworkTop.TOPQCommonSlimming.setup('SJET1', SJET1Stream)
 from DerivationFrameworkCore.SlimmingHelper import SlimmingHelper
 SJET1SlimmingHelper = SlimmingHelper("SJET1SlimmingHelper")
 
+
+# declare all collections that are NOT in input files (i.e. built on-the-fly)
 SJET1SlimmingHelper.AppendToDictionary = {}
-for JetCollectionName in JetCollections:
+for JetCollectionName in JetCollections + JetCollectionExKtSubJetList:
   SJET1SlimmingHelper.AppendToDictionary[JetCollectionName] = "xAOD::JetContainer"
   SJET1SlimmingHelper.AppendToDictionary[JetCollectionName+"Aux"] = "xAOD::JetAuxContainer"
 
@@ -264,129 +266,96 @@ for JetCollectionName in JetCollections:
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtx"] = "xAOD::BTagVertexContainer"
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtxAux"] = "xAOD::BTagVertexAuxContainer"
 
+# smart collection
+SJET1SlimmingHelper.SmartCollections = ["AntiKt4EMTopoJets","AntiKt4LCTopoJets", 
+                                        "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets", 
+                                        "PrimaryVertices", ]
 
-# SJET1SlimmingHelper.AppendToDictionary={
-#                                         "AntiKt6LCTopoExKt2SubJets" : "xAOD::JetContainer",
-#                                         "AntiKt6LCTopoExKt2SubJetsAux" : "xAOD::JetAuxContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2Sub" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2SubAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt6LCTopo" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt6LCTopoAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt6LCTopoSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt6LCTopoSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt6LCTopoJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt6LCTopoJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2SubSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2SubSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2SubJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt6LCTopoExKt2SubJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-
-#                                        "AntiKt7LCTopoExKt2SubJets" : "xAOD::JetContainer",
-#                                         "AntiKt7LCTopoExKt2SubJetsAux" : "xAOD::JetAuxContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2Sub" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2SubAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt7LCTopo" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt7LCTopoAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt7LCTopoSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt7LCTopoSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt7LCTopoJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt7LCTopoJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2SubSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2SubSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2SubJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt7LCTopoExKt2SubJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-
-#                                        "AntiKt8LCTopoExKt2SubJets" : "xAOD::JetContainer",
-#                                         "AntiKt8LCTopoExKt2SubJetsAux" : "xAOD::JetAuxContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2Sub" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2SubAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt8LCTopo" : "xAOD::BTaggingContainer",
-#                                         "BTagging_AntiKt8LCTopoAux" : "xAOD::BTaggingAuxContainer",
-#                                         "BTagging_AntiKt8LCTopoSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt8LCTopoSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt8LCTopoJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt8LCTopoJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2SubSecVtx" : "xAOD::VertexContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2SubSecVtxAux" : "xAOD::VertexAuxContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2SubJFVtx" : "xAOD::BTagVertexContainer",
-#                                         "BTagging_AntiKt8LCTopoExKt2SubJFVtxAux" : "xAOD::BTagVertexAuxContainer",
-# }
-
-SJET1SlimmingHelper.SmartCollections = ["AntiKt4EMTopoJets","AntiKt4LCTopoJets","PrimaryVertices",]
+# collection that we want all variables
 SJET1SlimmingHelper.AllVariables = ["TruthEvents", "TruthVertices",
                                     #  "MuonSegments",
 
-                                      "AntiKt6LCTopoJets",
-                                      # "AntiKt6LCTopoExKt2SubJets",
-                                      "BTagging_AntiKt6LCTopo",
-                                      "BTagging_AntiKt6LCTopoExKt2Sub",
-                                      "BTagging_AntiKt6LCTopoJFVtx",
-                                      "BTagging_AntiKt6LCTopoSecVtx",
-                                      "BTagging_AntiKt6LCTopoExKt2SubJFVtx",
-                                      "BTagging_AntiKt6LCTopoExKt2SubSecVtx",
-                                      "AntiKt7LCTopoJets",
-                                      # "AntiKt7LCTopoExKt2SubJets",
-                                      "BTagging_AntiKt7LCTopo",
-                                      "BTagging_AntiKt7LCTopoExKt2Sub",
-                                      "BTagging_AntiKt7LCTopoJFVtx",
-                                      "BTagging_AntiKt7LCTopoSecVtx",
-                                      "BTagging_AntiKt7LCTopoExKt2SubJFVtx",
-                                      "BTagging_AntiKt7LCTopoExKt2SubSecVtx",
-                                      "AntiKt8LCTopoJets",
-                                      # "AntiKt8LCTopoExKt2SubJets",
-                                      "BTagging_AntiKt8LCTopo",
-                                      "BTagging_AntiKt8LCTopoExKt2Sub",
-                                      "BTagging_AntiKt8LCTopoJFVtx",
-                                      "BTagging_AntiKt8LCTopoSecVtx",
-                                      "BTagging_AntiKt8LCTopoExKt2SubJFVtx",
-                                      "BTagging_AntiKt8LCTopoExKt2SubSecVtx",
-                                      "AntiKt6TrackJets",
-                                      # "AntiKt6TrackExKt2SubJets",
-                                      "BTagging_AntiKt6Track",
-                                      "BTagging_AntiKt6TrackExKt2Sub",
-                                      "BTagging_AntiKt6TrackJFVtx",
-                                      "BTagging_AntiKt6TrackSecVtx",
-                                      "BTagging_AntiKt6TrackExKt2SubJFVtx",
-                                      "BTagging_AntiKt6TrackExKt2SubSecVtx",
-                                      "AntiKt7TrackJets",
-                                      # "AntiKt7TrackExKt2SubJets",
-                                      "BTagging_AntiKt7Track",
-                                      "BTagging_AntiKt7TrackExKt2Sub",
-                                      "BTagging_AntiKt7TrackJFVtx",
-                                      "BTagging_AntiKt7TrackSecVtx",
-                                      "BTagging_AntiKt7TrackExKt2SubJFVtx",
-                                      "BTagging_AntiKt7TrackExKt2SubSecVtx",
-                                      "AntiKt8TrackJets",
-                                      # "AntiKt8TrackExKt2SubJets",
-                                      "BTagging_AntiKt8Track",
-                                      "BTagging_AntiKt8TrackExKt2Sub",
-                                      "BTagging_AntiKt8TrackJFVtx",
-                                      "BTagging_AntiKt8TrackSecVtx",
-                                      "BTagging_AntiKt8TrackExKt2SubJFVtx",
-                                      "BTagging_AntiKt8TrackExKt2SubSecVtx",
+                                    "AntiKt2PV0TrackJets",
+                                    "BTagging_AntiKt2Track",
+                                    "BTagging_AntiKt2TrackJFVtx",
+                                    "BTagging_AntiKt2TrackSecVtx",
 
-                                     # "ElectronCollection",
-                                     # "PhotonCollection",
-                                     # "Electrons",
-                                     # "Muons",
-                                      #"TauRecContainer",
-                                      "MET_RefFinal",
-                                      #"AntiKt4LCTopoJets",
-                                      #"BTagging_AntiKt4LCTopo",
-                                      "InDetTrackParticles",
-                                    #  "PrimaryVertices",
-                                      #"CaloCalTopoClusters",
+                                    "AntiKt3PV0TrackJets",
+                                    "BTagging_AntiKt3Track",
+                                    "BTagging_AntiKt3TrackJFVtx",
+                                    "BTagging_AntiKt3TrackSecVtx",
+
+                                    "AntiKt10LCTopoJets",
+
+                                    "AntiKt6LCTopoJets",
+                                    # "AntiKt6LCTopoExKt2SubJets",
+                                    "BTagging_AntiKt6LCTopo",
+                                    "BTagging_AntiKt6LCTopoExKt2Sub",
+                                    "BTagging_AntiKt6LCTopoJFVtx",
+                                    "BTagging_AntiKt6LCTopoSecVtx",
+                                    "BTagging_AntiKt6LCTopoExKt2SubJFVtx",
+                                    "BTagging_AntiKt6LCTopoExKt2SubSecVtx",
+                                    "AntiKt7LCTopoJets",
+                                    # "AntiKt7LCTopoExKt2SubJets",
+                                    "BTagging_AntiKt7LCTopo",
+                                    "BTagging_AntiKt7LCTopoExKt2Sub",
+                                    "BTagging_AntiKt7LCTopoJFVtx",
+                                    "BTagging_AntiKt7LCTopoSecVtx",
+                                    "BTagging_AntiKt7LCTopoExKt2SubJFVtx",
+                                    "BTagging_AntiKt7LCTopoExKt2SubSecVtx",
+                                    "AntiKt8LCTopoJets",
+                                    # "AntiKt8LCTopoExKt2SubJets",
+                                    "BTagging_AntiKt8LCTopo",
+                                    "BTagging_AntiKt8LCTopoExKt2Sub",
+                                    "BTagging_AntiKt8LCTopoJFVtx",
+                                    "BTagging_AntiKt8LCTopoSecVtx",
+                                    "BTagging_AntiKt8LCTopoExKt2SubJFVtx",
+                                    "BTagging_AntiKt8LCTopoExKt2SubSecVtx",
+                                    "AntiKt6TrackJets",
+                                    # "AntiKt6TrackExKt2SubJets",
+                                    "BTagging_AntiKt6Track",
+                                    "BTagging_AntiKt6TrackExKt2Sub",
+                                    "BTagging_AntiKt6TrackJFVtx",
+                                    "BTagging_AntiKt6TrackSecVtx",
+                                    "BTagging_AntiKt6TrackExKt2SubJFVtx",
+                                    "BTagging_AntiKt6TrackExKt2SubSecVtx",
+                                    "AntiKt7TrackJets",
+                                    # "AntiKt7TrackExKt2SubJets",
+                                    "BTagging_AntiKt7Track",
+                                    "BTagging_AntiKt7TrackExKt2Sub",
+                                    "BTagging_AntiKt7TrackJFVtx",
+                                    "BTagging_AntiKt7TrackSecVtx",
+                                    "BTagging_AntiKt7TrackExKt2SubJFVtx",
+                                    "BTagging_AntiKt7TrackExKt2SubSecVtx",
+                                    "AntiKt8TrackJets",
+                                    # "AntiKt8TrackExKt2SubJets",
+                                    "BTagging_AntiKt8Track",
+                                    "BTagging_AntiKt8TrackExKt2Sub",
+                                    "BTagging_AntiKt8TrackJFVtx",
+                                    "BTagging_AntiKt8TrackSecVtx",
+                                    "BTagging_AntiKt8TrackExKt2SubJFVtx",
+                                    "BTagging_AntiKt8TrackExKt2SubSecVtx",
+
+                                   # "ElectronCollection",
+                                   # "PhotonCollection",
+                                   # "Electrons",
+                                   # "Muons",
+                                    #"TauRecContainer",
+                                    "MET_RefFinal",
+                                    #"AntiKt4LCTopoJets",
+                                    #"BTagging_AntiKt4LCTopo",
+                                    "InDetTrackParticles",
+                                  #  "PrimaryVertices",
+                                    "CaloCalTopoClusters",
                                        ]
                 
+# collection that needs special handling
 StaticContent = []
-
-# write exkt subjet
 for JetCollectionName in JetCollectionExKtSubJetList:
   StaticContent += [
                      "xAOD::JetContainer#" + JetCollectionName,
                      "xAOD::JetAuxContainer#" + JetCollectionName + "Aux." + "-Parent",
                    ]
-
 SJET1SlimmingHelper.StaticContent += StaticContent
 
 # Trigger content
