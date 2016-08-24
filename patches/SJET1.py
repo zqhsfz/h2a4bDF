@@ -266,15 +266,6 @@ for JetCollectionName in JetCollections + JetCollectionExKtSubJetList:
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtx"] = "xAOD::BTagVertexContainer"
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtxAux"] = "xAOD::BTagVertexAuxContainer"
 
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2Sub"] = "xAOD::BTaggingContainer"
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubAux"] = "xAOD::BTaggingAuxContainer"
-
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubSecVtx"] = "xAOD::VertexContainer"
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubSecVtxAux"] = "xAOD::VertexAuxContainer"
-
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubJFVtx"] = "xAOD::BTagVertexContainer"
-  SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"ExKt2SubJFVtxAux"] = "xAOD::BTagVertexAuxContainer"
-
 # smart collection
 SJET1SlimmingHelper.SmartCollections = ["AntiKt4EMTopoJets","AntiKt4LCTopoJets", 
                                         "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets", 
