@@ -21,7 +21,6 @@ if DFisMC:
   from DerivationFrameworkMCTruth.MCTruthCommon import *
 doRetag = True
 JetCollections = [
-  #'AntiKt5LCTopoJets', 
   'AntiKt6LCTopoJets', 
   'AntiKt7LCTopoJets', 
   'AntiKt8LCTopoJets',
@@ -65,8 +64,10 @@ skimmingTools_jet = DerivationFrameworkTop.TOPQCommonSelection.setup_jet('SJET1'
 #====================================================================
 # THINNING TOOLS
 #====================================================================
-import DerivationFrameworkTop.TOPQCommonThinning
-thinningTools = DerivationFrameworkTop.TOPQCommonThinning.setup('TOPQ1',TOPQ1ThinningHelper.ThinningSvc(), ToolSvc)
+# No thinning at all
+# import DerivationFrameworkTop.TOPQCommonThinning
+# thinningTools = DerivationFrameworkTop.TOPQCommonThinning.setup('TOPQ1',TOPQ1ThinningHelper.ThinningSvc(), ToolSvc)
+thinningTools = []
 
 #====================================================================
 # CREATE THE KERNEL(S)
@@ -151,6 +152,13 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
     from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetFinderTool
     from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetRecorderTool
 
+    ExGhostLabels = []
+    if "TrackJets" in JetCollectionName:
+      ExGhostLabels = ["GhostBHadronsFinal", "GhostBHadronsInitial", "GhostBQuarksFinal", "GhostCHadronsFinal", "GhostCHadronsInitial", "GhostCQuarksFinal", "GhostHBosons", "GhostPartons", "GhostTQuarksFinal", "GhostTausFinal", "GhostTruth"]
+    else:
+      ExGhostLabels = ["GhostBHadronsFinal", "GhostBHadronsInitial", "GhostBQuarksFinal", "GhostCHadronsFinal", "GhostCHadronsInitial", "GhostCQuarksFinal", "GhostHBosons", "GhostPartons", "GhostTQuarksFinal", "GhostTausFinal", "GhostTrack", "GhostTruth"]
+
+
     SubjetContainerName = "%sExKt%iSubJets" % (JetCollectionName.replace("Jets", ""), nsubjet)
 
     subjetrecorder = SubjetRecorderTool("subjetrecorder%i_%s" % (nsubjet, JetCollectionName))
@@ -166,7 +174,7 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
       name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
       JetAlgorithm = "Kt",
       JetRadius = 10.0,
-      PtMin = 5000,
+      PtMin = 0,   # considering this is low pT case, we decide to move any selection on subjets to offline level
       ExclusiveNJets = 2,
       InputJetContainerName = JetCollectionName,
       SubjetRecorder = subjetrecorder,
@@ -174,6 +182,8 @@ def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
       SubjetContainerName = SubjetContainerName,
       SubjetAlgorithm_BTAG = "AntiKt",
       SubjetRadius_BTAG = 0.4,
+      SubjetBoostConstituent = False,
+      GhostLabels = ",".join(ExGhostLabels)
     )
     ToolSvc += ExKtbbTagToolInstance
 
