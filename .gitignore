@@ -3,3 +3,5 @@ InstallArea/
 PhysicsAnalysis/
 Reconstruction/
 WorkArea/
+run/local/
+run/scripts/samples.pyc
