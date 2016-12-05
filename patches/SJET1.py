@@ -225,6 +225,24 @@ ExKtJetCollection__FatJetConfigs = {
                                      "AntiKt10PV0TrackJets": {"doTrackSubJet": False},
                                    }
 
+# make copy for RNN associator
+for key, config in ExKtJetCollection__FatJetConfigs.items():
+  # parse the jet radius
+  if "Kt6" in key:
+    ConeStr = "RNNCone06"
+  elif "Kt7" in key:
+    ConeStr = "RNNCone07"
+  elif "Kt8" in key:
+    ConeStr = "RNNCone08"
+  elif "Kt10" in key:
+    ConeStr = "RNNCone10"
+  else:
+    ConeStr = "RNNConeNone"
+
+  newkey = key[:-4]+ConeStr+"Jets"
+  addCopyJet(SJET1Sequence, ToolSvc, key, newkey)
+  ExKtJetCollection__FatJetConfigs[newkey] = dict(config)
+
 # build subjets
 ExKtJetCollection__FatJet = ExKtJetCollection__FatJetConfigs.keys()
 ExKtJetCollection__SubJet = []
@@ -235,17 +253,45 @@ for key, config in ExKtJetCollection__FatJetConfigs.items():
 # Transfer the Links to minimize output jet collections
 #===================================================================
 
-jetassoctool = getJetExternalAssocTool("AntiKt6LCTopo", "NewAntiKt6LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
-applyJetAugmentation('AntiKt6LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt6LCTopo', SJET1Sequence, jetassoctool)
+jetassoctool1 = getJetExternalAssocTool("AntiKt6LCTopo", "NewAntiKt6LCTopo", MomentPrefix="FromNew_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool2 = getJetExternalAssocTool("AntiKt6LCTopo", "AntiKt6LCTopoRNNCone06", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool3 = getJetExternalAssocTool("AntiKt6LCTopo", "NewAntiKt6LCTopoRNNCone06", MomentPrefix="FromNewRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt6LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt6LCTopo', SJET1Sequence, jetassoctool1)
+applyJetAugmentation('AntiKt6LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt6LCTopo', SJET1Sequence, jetassoctool2)
+applyJetAugmentation('AntiKt6LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt6LCTopo', SJET1Sequence, jetassoctool3)
 
-jetassoctool = getJetExternalAssocTool("AntiKt7LCTopo", "NewAntiKt7LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
-applyJetAugmentation('AntiKt7LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt7LCTopo', SJET1Sequence, jetassoctool)
+jetassoctool1 = getJetExternalAssocTool("AntiKt7LCTopo", "NewAntiKt7LCTopo", MomentPrefix="FromNew_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool2 = getJetExternalAssocTool("AntiKt7LCTopo", "AntiKt7LCTopoRNNCone07", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool3 = getJetExternalAssocTool("AntiKt7LCTopo", "NewAntiKt7LCTopoRNNCone07", MomentPrefix="FromNewRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt7LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt7LCTopo', SJET1Sequence, jetassoctool1)
+applyJetAugmentation('AntiKt7LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt7LCTopo', SJET1Sequence, jetassoctool2)
+applyJetAugmentation('AntiKt7LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt7LCTopo', SJET1Sequence, jetassoctool3)
 
-jetassoctool = getJetExternalAssocTool("AntiKt8LCTopo", "NewAntiKt8LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
-applyJetAugmentation('AntiKt8LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt8LCTopo', SJET1Sequence, jetassoctool)
+jetassoctool1 = getJetExternalAssocTool("AntiKt8LCTopo", "NewAntiKt8LCTopo", MomentPrefix="FromNew_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool2 = getJetExternalAssocTool("AntiKt8LCTopo", "AntiKt8LCTopoRNNCone08", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool3 = getJetExternalAssocTool("AntiKt8LCTopo", "NewAntiKt8LCTopoRNNCone08", MomentPrefix="FromNewRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt8LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt8LCTopo', SJET1Sequence, jetassoctool1)
+applyJetAugmentation('AntiKt8LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt8LCTopo', SJET1Sequence, jetassoctool2)
+applyJetAugmentation('AntiKt8LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt8LCTopo', SJET1Sequence, jetassoctool3)
 
-jetassoctool = getJetExternalAssocTool("AntiKt10LCTopoLowPt", "NewAntiKt10LCTopoLowPt", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
-applyJetAugmentation('AntiKt10LCTopoLowPt', 'AugmentationAlg_LinkTransfer_AntiKt10LCTopoLowPt', SJET1Sequence, jetassoctool)
+jetassoctool1 = getJetExternalAssocTool("AntiKt10LCTopoLowPt", "NewAntiKt10LCTopoLowPt", MomentPrefix="FromNew_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool2 = getJetExternalAssocTool("AntiKt10LCTopoLowPt", "AntiKt10LCTopoLowPtRNNCone10", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+jetassoctool3 = getJetExternalAssocTool("AntiKt10LCTopoLowPt", "NewAntiKt10LCTopoLowPtRNNCone10", MomentPrefix="FromNewRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt10LCTopoLowPt', 'AugmentationAlg_LinkTransfer_AntiKt10LCTopoLowPt', SJET1Sequence, jetassoctool1)
+applyJetAugmentation('AntiKt10LCTopoLowPt', 'AugmentationAlg_LinkTransfer_AntiKt10LCTopoLowPt', SJET1Sequence, jetassoctool2)
+applyJetAugmentation('AntiKt10LCTopoLowPt', 'AugmentationAlg_LinkTransfer_AntiKt10LCTopoLowPt', SJET1Sequence, jetassoctool3)
+
+jetassoctool = getJetExternalAssocTool("AntiKt6PV0Track", "AntiKt6PV0TrackRNNCone06", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt6PV0Track', 'AugmentationAlg_LinkTransfer_AntiKt6PV0Track', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt7PV0Track", "AntiKt7PV0TrackRNNCone07", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt7PV0Track', 'AugmentationAlg_LinkTransfer_AntiKt7PV0Track', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt8PV0Track", "AntiKt8PV0TrackRNNCone08", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt8PV0Track', 'AugmentationAlg_LinkTransfer_AntiKt8PV0Track', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt10PV0Track", "AntiKt10PV0TrackRNNCone10", MomentPrefix="FromRNN_", ListOfOldLinkNames=["ExKt2SubJets"])
+applyJetAugmentation('AntiKt10PV0Track', 'AugmentationAlg_LinkTransfer_AntiKt10PV0Track', SJET1Sequence, jetassoctool)
 
 #===================================================================
 # Reset EL in ExKt subjets after all of them are built
