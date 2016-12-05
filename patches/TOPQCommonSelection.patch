@@ -1,0 +1,13 @@
+Index: PhysicsAnalysis/DerivationFramework/DerivationFrameworkTop/python/TOPQCommonSelection.py
+===================================================================
+--- PhysicsAnalysis/DerivationFramework/DerivationFrameworkTop/python/TOPQCommonSelection.py	(revision 788049)
++++ PhysicsAnalysis/DerivationFramework/DerivationFrameworkTop/python/TOPQCommonSelection.py	(working copy)
+@@ -153,6 +153,8 @@
+     # TOPQ_Selection_jet = "( (count("+akt4EMcalib_20+") >= 5) || (count("+largeR_350+") >= 1) )" # boosted_350GeV
+     # TOPQ_Selection_jet = "( (count("+akt4EMcalib_20+") >= 5) || (count("+largeR_200+") >= 2) )" # boosted_2jets
+     # TOPQ_Selection_jet = "( (count("+akt4EMcalib_20+") >= 5) || (count("+largeR_200_masscut+") >= 1) )" # boosted_masscut
++  elif TOPQname == 'SJET1':
++    TOPQ_Selection_jet = "( (count(AntiKt4EMTopoJets.pt >30*GeV) >=1) )"
+   else: 
+     TOPQ_Selection_jet = "1"
+   

@@ -1,0 +1,28 @@
+Index: PhysicsAnalysis/DerivationFramework/DerivationFrameworkCore/python/DerivationFrameworkProdFlags.py
+===================================================================
+--- PhysicsAnalysis/DerivationFramework/DerivationFrameworkCore/python/DerivationFrameworkProdFlags.py	(revision 788049)
++++ PhysicsAnalysis/DerivationFramework/DerivationFrameworkCore/python/DerivationFrameworkProdFlags.py	(working copy)
+@@ -10,6 +10,23 @@
+ listAllKnownDPD=[]  
+ 
+ ####################################
++# Define by Mazin
++####################################
++
++class WriteDAOD_SJET1Stream(JobProperty):
++    """SJET1 derivation"""
++    statusOn = True
++    allowedTypes = ['bool']
++    StoredValue = False
++    StreamName = 'StreamDAOD_SJET1'
++    FileName = ''
++    isVirtual = False
++    DPDMakerScript = "DerivationFrameworkTop/SJET1.py"
++    pass
++jobproperties.DerivationFrameworkProdFlags.add_JobProperty(WriteDAOD_SJET1Stream)
++listAODtoDPD.append(WriteDAOD_SJET1Stream.StreamName)
++
++####################################
+ # Defined by ASG for tests/examples
+ ####################################
+ 

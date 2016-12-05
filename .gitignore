@@ -1,7 +1,7 @@
-.asetup.save
-InstallArea/
-PhysicsAnalysis/
-Reconstruction/
-WorkArea/
-run/local/
-run/scripts/samples.pyc
+InstallArea
+WorkArea
+PhysicsAnalysis
+Reconstruction
+run/*
+!run/scripts/
+.asetup*
