@@ -7,28 +7,74 @@ from DerivationFrameworkCore.DerivationFrameworkMaster import *
 from DerivationFrameworkInDet.InDetCommon import *
 from DerivationFrameworkJetEtMiss.JetCommon import *
 from DerivationFrameworkJetEtMiss.ExtendedJetCommon import *
-#from DerivationFrameworkJetEtMiss.METCommon import *
-#from DerivationFrameworkJetEtMiss.JetCommon import *
-#from DerivationFrameworkJetEtMiss.ExtendedJetCommon import * 
 from DerivationFrameworkJetEtMiss.METCommon import *
+from DerivationFrameworkFlavourTag.HbbCommon import *
 from DerivationFrameworkEGamma.EGammaCommon import *
 from DerivationFrameworkMuons.MuonsCommon import *
 from AthenaCommon.GlobalFlags import globalflags
 DFisMC = (globalflags.DataSource()=='geant4')
 
-
 if DFisMC:
   from DerivationFrameworkMCTruth.MCTruthCommon import *
-doRetag = True
-JetCollections = [
-  'AntiKt6LCTopoJets', 
-  'AntiKt7LCTopoJets', 
-  'AntiKt8LCTopoJets',
 
-  'AntiKt6TrackJets',
-  'AntiKt7TrackJets',
-  'AntiKt8TrackJets',
-  ]
+from JetRec.JetRecStandard import jtm
+from JetRec.JetRecConf import JetAlgorithm
+
+#####################################################################
+# Utils Functions
+#####################################################################
+
+# For R=0.6,0.7,0.8 jet
+# R=1.0 jet should be done separately
+# Track jets should be done separately
+def addRscanJets(jetalg,radius,inputtype,sequence,outputlist):
+  # list of modifiers for topo
+  if "topo_rscan" not in jtm.modifiersMap:
+    jtm.modifiersMap["topo_rscan"] = list(jtm.modifiersMap["calib_topo_ungroomed"])
+    print "List of topo_rscan_mods:", jtm.modifiersMap["topo_rscan"]
+
+  # list of modifiers for truth
+  if jetFlags.useTruth() and ("truth_rscan" not in jtm.modifiersMap):
+    jtm.modifiersMap["truth_rscan"] = list(jtm.modifiersMap["truth_ungroomed"])
+    print "List of truth_rscan_modes", jtm.modifiersMap["truth_rscan"]
+
+  # naming scheme
+  jetname = "{0}{1}{2}Jets".format(jetalg,int(radius*10),inputtype)
+  algname = "jetalg"+jetname
+
+  # build jets
+  # Mazin - bumping up pt threshold on jets to avoid the 1 particle event problem from subjet finder
+  # Qi: still keep low pT threshold for lctopo jets --> can always cut on it offline
+  if not hasattr(sequence, algname):
+    if inputtype == "Truth":
+      addStandardJets(jetalg, radius, "Truth", mods="truth_rscan", ptmin=5000, algseq=sequence, outputGroup=outputlist)
+    if inputtype == "TruthWZ":
+      addStandardJets(jetalg, radius, "TruthWZ", mods="truth_rscan", ptmin=5000, algseq=sequence, outputGroup=outputlist)
+    elif inputtype == "LCTopo":
+      # TODO: confirm the pt threshold, and calibOpt "aro"
+      # addStandardJets(jetalg, radius, "LCTopo", mods="topo_rscan", ghostArea=0.01, ptmin=30000, ptminFilter=7000, calibOpt="aro", algseq=sequence, outputGroup=outputlist)
+      addStandardJets(jetalg, radius, "LCTopo", mods="topo_rscan", ghostArea=0.01, ptmin=2000, ptminFilter=5000, calibOpt="aro", algseq=sequence, outputGroup=outputlist)
+
+  return jetname
+
+# For track jets
+def addTrackJets(radius, sequence):
+  jetname = "AntiKt%dTrackJets" % (radius*10)
+  algname = "jfind_akt%dtrackjet" % (radius*10)
+
+  if not hasattr(sequence, algname):
+    jfind_aktXtrackjet = jtm.addJetFinder(jetname, "AntiKt", radius, "pv0track", ghostArea=0.00, ptmin=2000, ptminFilter=5000, calibOpt="none")
+    jetalg_aktXtrackjet = JetAlgorithm(algname, Tools = [jfind_aktXtrackjet])
+    sequence += jetalg_aktXtrackjet
+
+  return jetname
+
+#####################################################################
+# Configurations / Initializations
+#####################################################################
+
+# TODO: seems redundant
+doRetag = True
 
 #====================================================================
 # SET UP STREAM   
@@ -83,151 +129,133 @@ SJET1Sequence = CfgMgr.AthSequencer("SJET1Sequence")
 #====================================================================
 # Jets for R-scan
 #====================================================================
-from JetRec.JetRecStandard import jtm
-from JetRec.JetRecConf import JetAlgorithm
 
-
-topo_rscan_mods = jtm.modifiersMap["calib_topo_ungroomed"]
-print topo_rscan_mods
 if jetFlags.useTruth():
-    truth_rscan_mods = jtm.modifiersMap["truth_ungroomed"]
-    print truth_rscan_mods
-skipmods = ["ktdr","nsubjettiness","ktsplitter","angularity","dipolarity","planarflow","ktmassdrop","encorr","comshapes"]
-for mod in skipmods:
-    print "remove", mod
-    #topo_rscan_mods.remove(jtm.tools[mod])
-    #if jetFlags.useTruth(): truth_rscan_mods.remove(jtm.tools[mod])
-jtm.modifiersMap["topo_rscan"] = topo_rscan_mods
-if jetFlags.useTruth(): jtm.modifiersMap["truth_rscan"] = truth_rscan_mods
+  addRscanJets("AntiKt", 0.6, "Truth", SJET1Sequence, "SJET1")
+  addRscanJets("AntiKt", 0.7, "Truth", SJET1Sequence, "SJET1")
+  addRscanJets("AntiKt", 0.8, "Truth", SJET1Sequence, "SJET1")
 
-def addRscanJets(jetalg,radius,inputtype,sequence,outputlist):
-    jetname = "{0}{1}{2}Jets".format(jetalg,int(radius*10),inputtype)
-    algname = "jetalg"+jetname
+addRscanJets("AntiKt", 0.6, "LCTopo", SJET1Sequence, "SJET1")
+addRscanJets("AntiKt", 0.7, "LCTopo", SJET1Sequence, "SJET1")
+addRscanJets("AntiKt", 0.8, "LCTopo", SJET1Sequence, "SJET1")
 
-    ######## Mazin - bumping up pt threshold on jets to avoid the 1 particle event problem from subjet finder
-    if not hasattr(sequence,algname):
-        if inputtype == "Truth":
-            addStandardJets(jetalg, radius, "Truth", mods="truth_rscan", ptmin=5000, algseq=sequence, outputGroup=outputlist)
-        if inputtype == "TruthWZ":
-            addStandardJets(jetalg, radius, "TruthWZ", mods="truth_rscan", ptmin=5000, algseq=sequence, outputGroup=outputlist)
-        elif inputtype == "LCTopo":
-            addStandardJets(jetalg, radius, "LCTopo", mods="topo_rscan",
-                            ghostArea=0.01, ptmin=30000, ptminFilter=7000, calibOpt="aro", algseq=sequence, outputGroup=outputlist)
+#====================================================================
+# Build new AntiKt10 LCTopo Jets with lower threshold
+#====================================================================
 
-OutputJets["SJET1"] = ["AntiKt4TruthJets","AntiKt4EMTopoJets","AntiKt4LCTopoJets"]
-addDefaultTrimmedJets(SJET1Sequence,"SJET1")
-#if jetFlags.useTruth:
-#    replaceBuggyAntiKt4TruthWZJets(SJET1Sequence,"SJET1")
-for radius in [0.6,0.7,0.8]:#[0.2, 0.3, 0.5, 0.6, 0.7, 0.8]:
-    if jetFlags.useTruth:
-        addRscanJets("AntiKt",radius,"Truth",SJET1Sequence,"SJET1")
-        #addRscanJets("AntiKt",radius,"TruthWZ",SJET1Sequence,"SJET1")
-    addRscanJets("AntiKt",radius,"LCTopo",SJET1Sequence,"SJET1")
+# TODO: check if this is good
+if jetFlags.useTruth():
+  jfind_largefr10_truth = jtm.addJetFinder("AntiKt10TruthLowPtJets", "AntiKt", 1.0, "truth", "truth_ungroomed", ghostArea = 0.01, ptmin = 2000, ptminFilter = 5000, calibOpt = "none")
+  jetalg_largefr10_truth = JetAlgorithm("jfind_largefr10_truth", Tools = [jfind_largefr10_truth])
+  SJET1Sequence += jetalg_largefr10_truth
 
-# build track jets for b-tagging
-for radius in [0.6, 0.7, 0.8]:
-  jfind_aktXtrackjet = jtm.addJetFinder("AntiKt%dTrackJets" % (radius*10), "AntiKt", radius, "pv0track", ghostArea=0.00, ptmin=5000, ptminFilter=5000, calibOpt="none")
-  jetalg_aktXtrackjet = JetAlgorithm("jfind_akt%dtrackjet" % (radius*10), Tools = [jfind_aktXtrackjet])
-
-  SJET1Sequence += jetalg_aktXtrackjet
+jfind_largefr10_lctopo = jtm.addJetFinder("AntiKt10LCTopoLowPtJets", "AntiKt", 1.0, "lctopo", "calib_topo_ungroomed", ghostArea = 0.01, ptmin = 2000, ptminFilter = 5000, calibOpt = "none")
+jetalg_largefr10_lctopo = JetAlgorithm("jfind_largefr10_lctopo", Tools = [jfind_largefr10_lctopo])
+SJET1Sequence += jetalg_largefr10_lctopo
 
 
-#BTaggingFlags.CalibrationTag = 'BTagCalibRUN12-08-18'
+#====================================================================
+# Build Track Jets
+#====================================================================
 
-#Btag RScan Jets
-from DerivationFrameworkFlavourTag.FlavourTagCommon import *
-defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
+addTrackJets(0.6, SJET1Sequence)
+addTrackJets(0.7, SJET1Sequence)
+addTrackJets(0.8, SJET1Sequence)
+addTrackJets(1.0, SJET1Sequence)
+
+#===================================================================
+# Build ExKt and ExCoM subjet collections
+#===================================================================
+
+# Jet Copy
+addCopyJet(SJET1Sequence, ToolSvc, "AntiKt6LCTopoJets", "NewAntiKt6LCTopoJets")
+addCopyJet(SJET1Sequence, ToolSvc, "AntiKt7LCTopoJets", "NewAntiKt7LCTopoJets")
+addCopyJet(SJET1Sequence, ToolSvc, "AntiKt8LCTopoJets", "NewAntiKt8LCTopoJets")
+addCopyJet(SJET1Sequence, ToolSvc, "AntiKt10LCTopoLowPtJets", "NewAntiKt10LCTopoLowPtJets")
+
+# ExKt configs
+ExKtJetCollection__FatJetConfigs = {
+                                     # calo-jet
+                                     "AntiKt6LCTopoJets"         : {"doTrackSubJet": False},
+                                     "NewAntiKt6LCTopoJets"      : {"doTrackSubJet": True},
+                                     "AntiKt7LCTopoJets"         : {"doTrackSubJet": False},
+                                     "NewAntiKt7LCTopoJets"      : {"doTrackSubJet": True},
+                                     "AntiKt8LCTopoJets"         : {"doTrackSubJet": False},
+                                     "NewAntiKt8LCTopoJets"      : {"doTrackSubJet": True},
+                                     "AntiKt10LCTopoLowPtJets"   : {"doTrackSubJet": False},
+                                     "NewAntiKt10LCTopoLowPtJets": {"doTrackSubJet": True},
+
+                                     # track jets
+                                     "AntiKt6TrackJets" : {"doTrackSubJet": False},
+                                     "AntiKt7TrackJets" : {"doTrackSubJet": False},
+                                     "AntiKt8TrackJets" : {"doTrackSubJet": False},
+                                     "AntiKt10TrackJets": {"doTrackSubJet": False},
+                                   }
+
+# build subjets
+ExKtJetCollection__FatJet = ExKtJetCollection__FatJetConfigs.keys()
+ExKtJetCollection__SubJet = []
+for key, config in ExKtJetCollection__FatJetConfigs.items():
+  ExKtJetCollection__SubJet += addExKt(SJET1Sequence, ToolSvc, [key], **config)
+
+#===================================================================
+# Transfer the Links to minimize output jet collections
+#===================================================================
+
+jetassoctool = getJetExternalAssocTool("AntiKt6LCTopo", "NewAntiKt6LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
+applyJetAugmentation('AntiKt6LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt6LCTopo', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt7LCTopo", "NewAntiKt7LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
+applyJetAugmentation('AntiKt7LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt7LCTopo', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt8LCTopo", "NewAntiKt8LCTopo", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
+applyJetAugmentation('AntiKt8LCTopo', 'AugmentationAlg_LinkTransfer_AntiKt8LCTopo', SJET1Sequence, jetassoctool)
+
+jetassoctool = getJetExternalAssocTool("AntiKt10LCTopoLowPt", "NewAntiKt10LCTopoLowPt", MomentPrefix="", ListOfOldLinkNames=["ExKt2SubJets"], ListOfNewLinkNames=["ExKt2TrackSubJets"])
+applyJetAugmentation('AntiKt10LCTopoLowPt', 'AugmentationAlg_LinkTransfer_AntiKt10LCTopoLowPt', SJET1Sequence, jetassoctool)
+
+#===================================================================
+# Reset EL in ExKt subjets after all of them are built
+#===================================================================
+
+SJET1Sequence += CfgMgr.xAODMaker__ElementLinkResetAlg("ELReset_AfterSubjetBuild", SGKeys=[name+"Aux." for name in ExKtJetCollection__SubJet])
+
+#===================================================================
+# Run b-tagging
+#===================================================================
+
+defaultTaggers = ['IP2D', 'IP3D', 'SV0', 'MultiSVbb1', 'MultiSVbb2', 'SV1', 'BasicJetFitter', 'JetFitterTag', 'JetFitterNN', 'GbbNNTag', 'MV2c00', 'MV2c10', 'MV2c20', 'MV2c100', 'MV2m']
 specialTaggers = ['ExKtbb_Hbb_MV2Only', 'ExKtbb_Hbb_MV2andJFDRSig', 'ExKtbb_Hbb_MV2andTopos']
 
-BTaggingFlags.writeSecondaryVertices=True
+# setup alias
+from BTagging.BTaggingFlags import BTaggingFlags
+BTaggingFlags.CalibrationChannelAliases += ["AntiKt10LCTopoTrimmedPtFrac5SmallR20->AntiKt4EMTopo"]  # enforced by ExKt tagger
+BTaggingFlags.CalibrationChannelAliases += [ jetname[:-4]+"->AntiKt4EMTopo" for jetname in ExKtJetCollection__FatJet ]
+BTaggingFlags.CalibrationChannelAliases += [ jetname[:-4]+"->AntiKt4EMTopo" for jetname in ExKtJetCollection__SubJet ]
 
-BTaggingFlags.CalibrationChannelAliases += ["AntiKt10LCTopoTrimmedPtFrac5SmallR20->AntiKt10LCTopo,AntiKt6LCTopo,AntiKt6TopoEM,AntiKt4LCTopo,AntiKt4TopoEM,AntiKt4EMTopo"]
+# run b-tagging
+from DerivationFrameworkFlavourTag.FlavourTagCommon import FlavorTagInit
+FlavorTagInit( 
+              myTaggers      = defaultTaggers, 
+              JetCollections = ["AntiKt4LCTopoJets", "AntiKt4PV0TrackJets", "AntiKt2PV0TrackJets"]+ExKtJetCollection__SubJet,
+              Sequencer      = SJET1Sequence,
+             )
 
-for JetCollection in JetCollections:
-  print JetCollection[:-4]+"->AntiKt4EMTopo"
-  BTaggingFlags.CalibrationChannelAliases += [JetCollection[:-4]+"->AntiKt4EMTopo"]
+FlavorTagInit( 
+              myTaggers      = defaultTaggers+specialTaggers,
+              JetCollections = ExKtJetCollection__FatJet,
+              Sequencer      = SJET1Sequence,
+             )
 
+#===================================================================
+# Reset EL in ExKt subjets after b-tagging
+#===================================================================
 
-def buildExclusiveSubjets(JetCollectionName, nsubjet, ToolSvc = ToolSvc):
-    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetFinderTool
-    from JetSubStructureMomentTools.JetSubStructureMomentToolsConf import SubjetRecorderTool
+SJET1Sequence += CfgMgr.xAODMaker__ElementLinkResetAlg("ELReset_AfterBtag", SGKeys=[name+"Aux." for name in ExKtJetCollection__SubJet])
 
-    ExGhostLabels = []
-    if "TrackJets" in JetCollectionName:
-      ExGhostLabels = ["GhostBHadronsFinal", "GhostBHadronsInitial", "GhostBQuarksFinal", "GhostCHadronsFinal", "GhostCHadronsInitial", "GhostCQuarksFinal", "GhostHBosons", "GhostPartons", "GhostTQuarksFinal", "GhostTausFinal", "GhostTruth"]
-    else:
-      ExGhostLabels = ["GhostBHadronsFinal", "GhostBHadronsInitial", "GhostBQuarksFinal", "GhostCHadronsFinal", "GhostCHadronsInitial", "GhostCQuarksFinal", "GhostHBosons", "GhostPartons", "GhostTQuarksFinal", "GhostTausFinal", "GhostTrack", "GhostTruth"]
-
-
-    SubjetContainerName = "%sExKt%iSubJets" % (JetCollectionName.replace("Jets", ""), nsubjet)
-
-    subjetrecorder = SubjetRecorderTool("subjetrecorder%i_%s" % (nsubjet, JetCollectionName))
-    ToolSvc += subjetrecorder
-
-    subjetlabel = "ExKt%iSubJets" % (nsubjet)
-
-    subjetrecorder.SubjetLabel = subjetlabel
-    subjetrecorder.SubjetContainerName = SubjetContainerName
-
-    from JetTagTools.JetTagToolsConf import Analysis__ExKtbbTagTool
-    ExKtbbTagToolInstance = Analysis__ExKtbbTagTool(
-      name = "ExKtbbTagTool%i_%s" % (nsubjet, JetCollectionName),
-      JetAlgorithm = "Kt",
-      JetRadius = 10.0,
-      PtMin = 0,   # considering this is low pT case, we decide to move any selection on subjets to offline level
-      ExclusiveNJets = 2,
-      InputJetContainerName = JetCollectionName,
-      SubjetRecorder = subjetrecorder,
-      SubjetLabel = subjetlabel,
-      SubjetContainerName = SubjetContainerName,
-      SubjetAlgorithm_BTAG = "AntiKt",
-      SubjetRadius_BTAG = 0.4,
-      SubjetBoostConstituent = False,
-      GhostLabels = ",".join(ExGhostLabels)
-    )
-    ToolSvc += ExKtbbTagToolInstance
-
-    return (ExKtbbTagToolInstance, SubjetContainerName)
-
-# build exkt subjets here
-JetCollectionExKtSubJetList = []
-for JetCollectionExKt in JetCollections:
-  # build ExKtbbTagTool instance
-  (ExKtbbTagToolInstance, SubjetContainerName) = buildExclusiveSubjets(JetCollectionExKt, 2)
-  JetCollectionExKtSubJetList += [SubjetContainerName]
-  
-  # build subjet collection through JetRecTool
-  from JetRec.JetRecConf import JetRecTool
-  jetrec = JetRecTool(
-                       name = "JetRecTool_ExKtbb_%s" % (JetCollectionExKt),
-                       OutputContainer = JetCollectionExKt,
-                       InputContainer = JetCollectionExKt,
-                       JetModifiers = [ExKtbbTagToolInstance],
-                     )
-  ToolSvc += jetrec
-  SJET1Sequence += JetAlgorithm(
-                          name = "JetAlgorithm_ExKtbb_%s" % (JetCollectionExKt),
-                          Tools = [jetrec],
-                        )
-
-# BTagging ExKtSubjetcs first
-for JetCollectionExKtSubJet in JetCollectionExKtSubJetList:
-  print JetCollectionExKtSubJet[:-4]+"->AntiKt4EMTopo"
-  BTaggingFlags.CalibrationChannelAliases += [JetCollectionExKtSubJet[:-4]+"->AntiKt4EMTopo"]
-
-FlavorTagInit(myTaggers      = defaultTaggers,
-             JetCollections = JetCollectionExKtSubJetList,
-             Sequencer      = SJET1Sequence)
-
-
-# and then the parent jet
-FlavorTagInit(myTaggers      = defaultTaggers + specialTaggers,
-             JetCollections = JetCollections,
-             Sequencer      = SJET1Sequence)
-
-
-if not hasattr(DerivationFrameworkJob,"ELReset"):
-  DerivationFrameworkJob += CfgMgr.xAODMaker__ElementLinkResetAlg( "ELReset" )
+#===================================================================
+# SKIMMING TOOLS
+#===================================================================
 
 # Skim on leptons
 SJET1Sequence += CfgMgr.DerivationFramework__DerivationKernel("TOPQ1SkimmingKernel_lep", SkimmingTools = skimmingTools_lep)
@@ -260,10 +288,9 @@ DerivationFrameworkTop.TOPQCommonSlimming.setup('SJET1', SJET1Stream)
 from DerivationFrameworkCore.SlimmingHelper import SlimmingHelper
 SJET1SlimmingHelper = SlimmingHelper("SJET1SlimmingHelper")
 
-
 # declare all collections that are NOT in input files (i.e. built on-the-fly)
 SJET1SlimmingHelper.AppendToDictionary = {}
-for JetCollectionName in JetCollections + JetCollectionExKtSubJetList:
+for JetCollectionName in ExKtJetCollection__FatJet+ExKtJetCollection__SubJet:
   SJET1SlimmingHelper.AppendToDictionary[JetCollectionName] = "xAOD::JetContainer"
   SJET1SlimmingHelper.AppendToDictionary[JetCollectionName+"Aux"] = "xAOD::JetAuxContainer"
 
@@ -277,101 +304,39 @@ for JetCollectionName in JetCollections + JetCollectionExKtSubJetList:
   SJET1SlimmingHelper.AppendToDictionary["BTagging_"+JetCollectionName[:-4]+"JFVtxAux"] = "xAOD::BTagVertexAuxContainer"
 
 # smart collection
-SJET1SlimmingHelper.SmartCollections = ["AntiKt4EMTopoJets","AntiKt4LCTopoJets", 
-                                        "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets", 
-                                        "PrimaryVertices", ]
+SJET1SlimmingHelper.SmartCollections = [
+                                        "AntiKt4EMTopoJets",
+                                        "BTagging_AntiKt4EMTopo",
+                                        "Electrons",
+                                        "Muons",
+                                        "Photons",
+                                        "MET_Reference_AntiKt4EMTopo"
+                                       ]
 
 # collection that we want all variables
-SJET1SlimmingHelper.AllVariables = ["TruthEvents", "TruthVertices",
-                                    #  "MuonSegments",
+SJET1SlimmingHelper.AllVariables = [
+                                    "TruthEvents", 
+                                    "TruthParticles",
+                                    "TruthVertices",
 
                                     "AntiKt2PV0TrackJets",
                                     "BTagging_AntiKt2Track",
                                     "BTagging_AntiKt2TrackJFVtx",
                                     "BTagging_AntiKt2TrackSecVtx",
 
-                                    "AntiKt3PV0TrackJets",
-                                    "BTagging_AntiKt3Track",
-                                    "BTagging_AntiKt3TrackJFVtx",
-                                    "BTagging_AntiKt3TrackSecVtx",
-
-                                    "AntiKt10LCTopoJets",
-
-                                    "AntiKt6LCTopoJets",
-                                    # "AntiKt6LCTopoExKt2SubJets",
-                                    "BTagging_AntiKt6LCTopo",
-                                    "BTagging_AntiKt6LCTopoExKt2Sub",
-                                    "BTagging_AntiKt6LCTopoJFVtx",
-                                    "BTagging_AntiKt6LCTopoSecVtx",
-                                    "BTagging_AntiKt6LCTopoExKt2SubJFVtx",
-                                    "BTagging_AntiKt6LCTopoExKt2SubSecVtx",
-                                    "AntiKt7LCTopoJets",
-                                    # "AntiKt7LCTopoExKt2SubJets",
-                                    "BTagging_AntiKt7LCTopo",
-                                    "BTagging_AntiKt7LCTopoExKt2Sub",
-                                    "BTagging_AntiKt7LCTopoJFVtx",
-                                    "BTagging_AntiKt7LCTopoSecVtx",
-                                    "BTagging_AntiKt7LCTopoExKt2SubJFVtx",
-                                    "BTagging_AntiKt7LCTopoExKt2SubSecVtx",
-                                    "AntiKt8LCTopoJets",
-                                    # "AntiKt8LCTopoExKt2SubJets",
-                                    "BTagging_AntiKt8LCTopo",
-                                    "BTagging_AntiKt8LCTopoExKt2Sub",
-                                    "BTagging_AntiKt8LCTopoJFVtx",
-                                    "BTagging_AntiKt8LCTopoSecVtx",
-                                    "BTagging_AntiKt8LCTopoExKt2SubJFVtx",
-                                    "BTagging_AntiKt8LCTopoExKt2SubSecVtx",
-                                    "AntiKt6TrackJets",
-                                    # "AntiKt6TrackExKt2SubJets",
-                                    "BTagging_AntiKt6Track",
-                                    "BTagging_AntiKt6TrackExKt2Sub",
-                                    "BTagging_AntiKt6TrackJFVtx",
-                                    "BTagging_AntiKt6TrackSecVtx",
-                                    "BTagging_AntiKt6TrackExKt2SubJFVtx",
-                                    "BTagging_AntiKt6TrackExKt2SubSecVtx",
-                                    "AntiKt7TrackJets",
-                                    # "AntiKt7TrackExKt2SubJets",
-                                    "BTagging_AntiKt7Track",
-                                    "BTagging_AntiKt7TrackExKt2Sub",
-                                    "BTagging_AntiKt7TrackJFVtx",
-                                    "BTagging_AntiKt7TrackSecVtx",
-                                    "BTagging_AntiKt7TrackExKt2SubJFVtx",
-                                    "BTagging_AntiKt7TrackExKt2SubSecVtx",
-                                    "AntiKt8TrackJets",
-                                    # "AntiKt8TrackExKt2SubJets",
-                                    "BTagging_AntiKt8Track",
-                                    "BTagging_AntiKt8TrackExKt2Sub",
-                                    "BTagging_AntiKt8TrackJFVtx",
-                                    "BTagging_AntiKt8TrackSecVtx",
-                                    "BTagging_AntiKt8TrackExKt2SubJFVtx",
-                                    "BTagging_AntiKt8TrackExKt2SubSecVtx",
-
-                                   # "ElectronCollection",
-                                   # "PhotonCollection",
-                                   # "Electrons",
-                                   # "Muons",
-                                    #"TauRecContainer",
                                     "MET_RefFinal",
-                                    #"AntiKt4LCTopoJets",
-                                    #"BTagging_AntiKt4LCTopo",
                                     "InDetTrackParticles",
-                                  #  "PrimaryVertices",
+                                    "PrimaryVertices",
                                     "CaloCalTopoClusters",
-                                       ]
-                
-# collection that needs special handling
-StaticContent = []
-for JetCollectionName in JetCollectionExKtSubJetList:
-  StaticContent += [
-                     "xAOD::JetContainer#" + JetCollectionName,
-                     "xAOD::JetAuxContainer#" + JetCollectionName + "Aux." + "-Parent",
-                   ]
-SJET1SlimmingHelper.StaticContent += StaticContent
+                                   ]
+SJET1SlimmingHelper.AllVariables += [ jetname                           for jetname in ExKtJetCollection__FatJet+ExKtJetCollection__SubJet ]
+SJET1SlimmingHelper.AllVariables += [ "BTagging_"+jetname[:-4]          for jetname in ExKtJetCollection__FatJet+ExKtJetCollection__SubJet ]
+SJET1SlimmingHelper.AllVariables += [ "BTagging_"+jetname[:-4]+"JFVtx"  for jetname in ExKtJetCollection__FatJet+ExKtJetCollection__SubJet ]
+SJET1SlimmingHelper.AllVariables += [ "BTagging_"+jetname[:-4]+"SecVtx" for jetname in ExKtJetCollection__FatJet+ExKtJetCollection__SubJet ]
 
 # Trigger content
 SJET1SlimmingHelper.IncludeJetTriggerContent = True
-# Add the jet containers to the stream
-addJetOutputs(SJET1SlimmingHelper,["SJET1"])
+
 SJET1SlimmingHelper.AppendContentToStream(SJET1Stream)
 SJET1Stream.RemoveItem("xAOD::TrigNavigation#*")
 SJET1Stream.RemoveItem("xAOD::TrigNavigationAuxInfo#*")
