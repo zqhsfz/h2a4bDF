@@ -6,6 +6,6 @@ _MC_Signal = [
 ]
 
 _MC_ttbar = [
-  "mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r7725_r7676",
+  # "mc15_13TeV.410000.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad.merge.AOD.e3698_s2608_s2183_r7725_r7676",
   "mc15_13TeV.410120.PowhegPythiaEvtGen_P2012_ttbar_hdamp172p5_nonallhad_bfilter.merge.AOD.e4373_s2608_r7725_r7676",
 ]

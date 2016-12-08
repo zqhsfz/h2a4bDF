@@ -5,15 +5,15 @@ import samples
 # nEventsPerJob = 1000
 # version = "test0"
 
-# # signal samples
-# sampleList = samples._MC_Signal
-# nEventsPerJob = 5000
-# version = "00-00-00"
+# signal samples
+sampleList = samples._MC_Signal
+nEventsPerJob = 5000
+version = "00-01-01"
 
 # ttbar samples
-sampleList = samples._MC_ttbar
-nEventsPerJob = 10000
-version = "00-00-00"
+# sampleList = samples._MC_ttbar
+# nEventsPerJob = 10000
+# version = "00-01-01"
 
 # now loop over them
 for sampleName in sampleList:
