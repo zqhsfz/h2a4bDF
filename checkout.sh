@@ -19,5 +19,6 @@ echo " "
 patch -N Reconstruction/AODFix/python/AODFix_r207.py < patches/AODFix_r207.patch
 patch -N PhysicsAnalysis/DerivationFramework/DerivationFrameworkCore/python/DerivationFrameworkProdFlags.py < patches/DerivationFrameworkProdFlags.patch
 patch -N PhysicsAnalysis/DerivationFramework/DerivationFrameworkTop/python/TOPQCommonSelection.py < patches/TOPQCommonSelection.patch
+patch -N PhysicsAnalysis/DerivationFramework/DerivationFrameworkFlavourTag/python/HbbCommon.py < patches/HbbCommon.patch
 patch -N PhysicsAnalysis/JetTagging/JetTagAlgs/BTagging/python/BTaggingConfiguration_LoadTools.py < patches/BTaggingConfiguration_LoadTools.patch
 cp patches/SJET1.py PhysicsAnalysis/DerivationFramework/DerivationFrameworkTop/share
